@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pizzaria</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f8f9fa;
+        }
+        .container {
+            width: 90%;
+            max-width: 400px;
+            margin: 20px 0;
+        }
+        .header {
+            background-color: #343a40;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px;
+        }
+        .button {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .input-group {
+            margin: 10px 0;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+        }
+        .footer {
+            margin: 20px 0;
+        }
+        .cart {
+            margin: 20px 0;
+            width: 100%;
+        }
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+        .cart-item button {
+            background-color: red;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>KIPIZZA GILL</h1>
+        </div>
+
+        <button class="button" onclick="selectItem('pizza')">Pizzas</button>
+        <button class="button" onclick="selectItem('pastel')">Pastéis</button>
+        <button class="button" onclick="selectItem('alarcarte')">À la Carte</button>
+
+        <form id="order-form">
+            <div class="input-group">
+                <label for="item">Item Selecionado</label>
+                <input type="text" id="item" name="item" readonly>
+            </div>
+
+            <div class="input-group">
+                <label for="flavor">Sabor</label>
+                <select id="flavor" name="flavor">
+                    <option value="mussarela">Mussarela</option>
+                    <option value="calabresa">Calabresa</option>
+                    <option value="marguerita">Marguerita</option>
+                    <option value="portuguesa">Portuguesa</option>
+                </select>
+            </div>
+
+            <button type="button" class="button" onclick="addItem()">Adicionar ao Pedido</button>
+        </form>
+
+        <div class="cart" id="cart">
+            <h2>Pedido</h2>
+            <div id="cart-items"></div>
+        </div>
+
+        <div class="input-group">
+            <label for="address">Endereço</label>
+            <input type="text" id="address" name="address" required>
+        </div>
+
+        <div class="input-group">
+            <label for="payment">Forma de Pagamento</label>
+            <select id="payment" name="payment">
+                <option value="dinheiro">Dinheiro</option>
+                <option value="cartao">Cartão</option>
+            </select>
+        </div>
+
+        <button type="button" class="button" onclick="sendOrder()">Enviar Pedido</button>
+    </div>
+
+    <script>
+        const cart = [];
+
+        function selectItem(item) {
+            document.getElementById('item').value = item;
+        }
+
+        function addItem() {
+            const item = document.getElementById('item').value;
+            const flavor = document.getElementById('flavor').value;
+            if (!item || !flavor) {
+                alert('Por favor, selecione um item e um sabor.');
+                return;
+            }
+            const cartItem = { item, flavor };
+            cart.push(cartItem);
+            updateCart();
+        }
+
+        function updateCart() {
+            const cartItems = document.getElementById('cart-items');
+            cartItems.innerHTML = '';
+            cart.forEach((cartItem, index) => {
+                const div = document.createElement('div');
+                div.className = 'cart-item';
+                div.innerHTML = `
+                    ${cartItem.item} - ${cartItem.flavor}
+                    <button onclick="removeItem(${index})">Remover</button>
+                `;
+                cartItems.appendChild(div);
+            });
+        }
+
+        function removeItem(index) {
+            cart.splice(index, 1);
+            updateCart();
+        }
+
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        function sendOrder() {
+            const address = document.getElementById('address').value;
+            const payment = document.getElementById('payment').value;
+            const phone = getQueryParam('p');
+
+            if (!phone) {
+                alert('Número de telefone não encontrado.');
+                return;
+            }
+
+            let orderSummary = 'Pedido:\n';
+            cart.forEach(cartItem => {
+                orderSummary += `${cartItem.item} - ${cartItem.flavor}\n`;
+            });
+            orderSummary += `Endereço: ${address}\nPagamento: ${payment}`;
+            const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(orderSummary)}`;
+
+            window.open(whatsappUrl, '_blank');
+        }
+
+        window.onload = () => {
+            const phone = getQueryParam('p');
+            if (!phone) {
+                alert('Número de telefone não encontrado. Por favor, acesse o link correto enviado pelo vendedor.');
+            }
+        };
+    </script>
+
+</body>
+</html>
